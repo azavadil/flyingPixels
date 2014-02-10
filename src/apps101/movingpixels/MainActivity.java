@@ -30,17 +30,26 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.widget.ImageView;
 
 public class MainActivity extends Activity {
 
+    private final String TAG = 	"penguin tag"; 
+	
 	private Bitmap mBitmap;
 	private Bitmap mPenguin;
 	private int mPHwidth; // Penguin half height
 	private int mPHheight; // Penguin half height
 	private Paint mPaint;
+	private float x;
+	private float y; 
+	private float vx = 1; 
+	private float vy = 1; 
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -162,9 +171,8 @@ public class MainActivity extends Activity {
 				// the circle has to be drawn before we draw the penguin otherwise
 				// the penguin will be hidden behind the circle
 				
-				mPaint.setColor(0xffffffff); 					// White
+				mPaint.setColor(0x80ffffff); 					// White
 				mPaint.setStyle(Style.FILL_AND_STROKE);
-				canvas.drawCircle(mPHwidth, mPHheight, mPHheight, mPaint);
 
 				
 				// here we're drawing the penguin
@@ -184,10 +192,40 @@ public class MainActivity extends Activity {
 				// 
 				// we take the SystemClock divided / 10.0f 
 				
+				// Note: instead of moving the penguin, we first translate the canvas and then 
+				//       rotate the penguin relative to the canvas
+				
 				float angle = SystemClock.uptimeMillis() / 10.0f;
+				canvas.translate(x,y); 
+
+				// move the circle to be drawn after we translate the canvas
+				canvas.drawCircle(mPHwidth, mPHheight, mPHheight, mPaint);
 				canvas.rotate(angle, mPHwidth, mPHheight);
 				canvas.drawBitmap(mPenguin, 0, 0, null);
 				
+				// here we add movement
+				// we're adding gravity. 
+				// we check to see if the penguin is too low, and if he is 
+				// then we change the sign of 'gravity'
+				
+				// want to bounce on bottom of screen
+				// canvas.getHeight doesn't work 
+				// Log.d("TAG", "Canvas: " + canvas.getHeight()) + " View: " + this.getHeight())
+				// the canvas is not as large as the view because things like status bars take up 
+				// part of the view
+				// 
+				// the penguin is drawn from the topleft corner. To get the bottom corner we have to 
+				// add 2*mPHheight
+				
+				if(y + 2*mPHheight + vy+1 >= this.getHeight()){ 
+					vy = -0.8f * -vy;                   //make sure I stay with float 0 
+				} else { 
+					// only accelerate if not bouncing
+					vy = vy + 1; 
+				}
+				
+				x = x + vx; 
+				y = y + vy; 
 				
 				// we use postInvalidate to animate the penguin
 				// postInvalidate means 'please redraw me' 
@@ -201,6 +239,47 @@ public class MainActivity extends Activity {
 			}
 		};
 		setContentView(v);
+		
+		// now we want to add interactive 
+		OnTouchListener onTouch = new OnTouchListener(){
+			@Override
+			public boolean onTouch(View v, MotionEvent event){ 
+				Log.d(TAG, "OnTouch! " +event); 
+				
+				// the event is the touch event. 
+				// the event contains the x,y position of the touch
+				// the x,y values are in the coordinate system of the view
+				// that means 0,0 is at the top
+				
+				// add conditional so we only capture the penguin on the 
+				// first onDown
+				
+				if(event.getAction() == MotionEvent.ACTION_DOWN) {
+					x = event.getX(); 
+					y = event.getY(); 
+					
+					
+					// when we click on the penguin we set the velocity to zero
+					vx = 0; 
+					vy = 0; 
+					
+					// we can use getAction to determine if a finger has come down or event
+					// more specifically to determine which finger has come down
+					Log.d(TAG, "Action: " + event.getAction()); 
+				}
+				// initially we had 
+				// 
+				// $ return false
+				// 
+				// this only captures one event
+				// by changing that to return true we capture motion move events rather 
+				// than just the first touch
+				return true; 
+			}
+		}; 
+				
+				
+		v.setOnTouchListener(onTouch); 
 	}
 
 	@Override
