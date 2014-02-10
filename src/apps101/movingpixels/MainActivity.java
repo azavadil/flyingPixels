@@ -49,7 +49,9 @@ public class MainActivity extends Activity {
 	private float x;
 	private float y; 
 	private float vx = 1; 
-	private float vy = 1; 
+	private float vy = 1;
+
+	private Canvas mCanvas; 
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -71,8 +73,8 @@ public class MainActivity extends Activity {
 		// next make a bitmap and experiment with drawing lines 
 		// we need canvas and paint to draw on bitmap
 		mBitmap = Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888);
-		Canvas c = new Canvas(mBitmap);
-		c.drawColor(0xff808080); // Opaque Gray or 'grey'
+		mCanvas = new Canvas(mBitmap);
+		mCanvas.drawColor(0xff808080); // Opaque Gray or 'grey'
 		
 		
 		// the first time around we use an imageview
@@ -99,8 +101,8 @@ public class MainActivity extends Activity {
 		// Nor by drawRect with the default fill style.
 		// mCanvas.drawLine(1, 1, 3, 3, mPaint); 
 		// mCanvas.drawRect(1, 1, 3, 3, mPaint);
-		c.drawLine(1, 1, 3, 3, mPaint);
-		c.drawRect(1, 1, 3, 3, mPaint);
+		mCanvas.drawLine(1, 1, 3, 3, mPaint);
+		mCanvas.drawRect(1, 1, 3, 3, mPaint);
 
 		// here we make our own view so we can fully customize the view and avoid
 		// some of the android defaults
@@ -240,6 +242,11 @@ public class MainActivity extends Activity {
 		};
 		setContentView(v);
 		
+		// Note: with onDraw and onTouch its useful to minimize the number of objects you create
+		//       these can be called rapidly so these can be computationally expensive 
+		//       as you end up constantly creating new objects. 
+		
+		
 		// now we want to add interactive 
 		OnTouchListener onTouch = new OnTouchListener(){
 			@Override
@@ -254,7 +261,8 @@ public class MainActivity extends Activity {
 				// add conditional so we only capture the penguin on the 
 				// first onDown
 				
-				if(event.getAction() == MotionEvent.ACTION_DOWN) {
+				if(event.getAction() == MotionEvent.ACTION_DOWN || 
+						event.getAction() == MotionEvent.ACTION_MOVE) {
 					x = event.getX(); 
 					y = event.getY(); 
 					
@@ -267,6 +275,21 @@ public class MainActivity extends Activity {
 					// more specifically to determine which finger has come down
 					Log.d(TAG, "Action: " + event.getAction()); 
 				}
+				
+				// painting in the bitmap
+				// x,y are in the view coordinate system (not the bitmap coordinate system)
+				
+				// 
+			
+				float scaleX = mBitmap.getWidth() / ((float)  v.getWidth()); 
+				float scaleY = mBitmap.getHeight() / ((float) v.getHeight()); 
+				float pointX = event.getX() * scaleX; 
+				float pointY = event.getY() * scaleY; 
+				
+				
+				
+				mCanvas.drawCircle(pointX, pointY, 2, mPaint); 
+				
 				// initially we had 
 				// 
 				// $ return false
