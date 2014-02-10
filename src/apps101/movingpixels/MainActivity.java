@@ -49,6 +49,9 @@ public class MainActivity extends Activity {
 		// the first thing we do is delete setContentView(R.layout.activity_main) 
 		// because we are going to create the view programatically
 		
+		// BitmapFactory works great for decoding a resource if we know our resource is 
+		// not too big
+		// .decodeResources takes a pointer to the resources as the first argument
 		
 		mPenguin = BitmapFactory.decodeResource(getResources(),
 				R.drawable.rain_penguin_180);
@@ -123,6 +126,9 @@ public class MainActivity extends Activity {
 				// canvas.scale(2,2)
 				// canvas.scale(2,2)
 				
+				// with canvas its possible to remember the settings using canvas.save(); 
+				
+				
 				canvas.save();
 				canvas.scale(scaleX, scaleY);
 				
@@ -146,15 +152,49 @@ public class MainActivity extends Activity {
 				// to turn off filtering  -
 				mPaint.setFilterBitmap(false); // Experiment with false vs true
 				canvas.drawBitmap(mBitmap, 0, 0, mPaint);
+				
+				
+				// canvas.restore() works in concert with canvas.save() 
+				// restores the prior settings
 				canvas.restore();
 
-				mPaint.setColor(0xffffffff); // White
+				// this draws a circle around our penguin
+				// the circle has to be drawn before we draw the penguin otherwise
+				// the penguin will be hidden behind the circle
+				
+				mPaint.setColor(0xffffffff); 					// White
 				mPaint.setStyle(Style.FILL_AND_STROKE);
 				canvas.drawCircle(mPHwidth, mPHheight, mPHheight, mPaint);
 
+				
+				// here we're drawing the penguin
+				// initially the penguin wasn't visible because the scale was too large
+				// one fix is to reverse the scale
+				// 
+				// $ canvas.scale(1/scaleX, 1/scaleY); 
+				
+				
+				
+				// canvas allows us to rotate. We do this in degrees. 
+				// by default the canvas rotates around 0,0
+				
+				// we use this calculation to determine how much to rotate the penguin
+				// SystemClock.uptimeMillis() does not include time asleep
+				// good clock to use if you want to count how long a user has seen something
+				// 
+				// we take the SystemClock divided / 10.0f 
+				
 				float angle = SystemClock.uptimeMillis() / 10.0f;
 				canvas.rotate(angle, mPHwidth, mPHheight);
 				canvas.drawBitmap(mPenguin, 0, 0, null);
+				
+				
+				// we use postInvalidate to animate the penguin
+				// postInvalidate means 'please redraw me' 
+				// you can call this method from anywhere
+				// for example if you have a thread where you get a new sensor measurement, 
+				// you can call post invalidate on your view
+			
 				
 				// In 20ms (1/50th second) this view will need to be redrawn
 				postInvalidateDelayed(20);
