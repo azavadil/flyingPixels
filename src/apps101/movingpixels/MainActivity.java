@@ -48,7 +48,7 @@ public class MainActivity extends Activity {
 	private Paint mPaint;
 	private float x;
 	private float y; 
-	private float vx = 1; 
+	private float vx = 2; 
 	private float vy = 1;
 
 	private Canvas mCanvas;
@@ -120,9 +120,7 @@ public class MainActivity extends Activity {
 		// Nor by drawRect with the default fill style.
 		// mCanvas.drawLine(1, 1, 3, 3, mPaint); 
 		// mCanvas.drawRect(1, 1, 3, 3, mPaint);
-		mCanvas.drawLine(1, 1, 3, 3, mPaint);
-		mCanvas.drawRect(1, 1, 3, 3, mPaint);
-
+	
 		// here we make our own view so we can fully customize the view and avoid
 		// some of the android defaults
 		
@@ -218,20 +216,10 @@ public class MainActivity extends Activity {
 				
 				float angle = SystemClock.uptimeMillis() / 10.0f;
 				canvas.translate(x,y); 
-				
-				// this is where we implement the touch interactivity which makes the 
-				// penguin larger
-				// right before we draw the circle we check to see if we're touching
-				// each time its touch we scale up the canvas by 20%
-				
-				if( mTouching) { 
-					canvas.scale(1.2f, 1.2f, mPHwidth, mPHheight); 
-				}
-				
+			
+			
 
 				// move the circle to be drawn after we translate the canvas
-				canvas.drawCircle(mPHwidth, mPHheight, mPHheight, mPaint);
-				canvas.rotate(angle, mPHwidth, mPHheight);
 				canvas.drawBitmap(mPenguin, 0, 0, null);
 				
 				// here we add movement
@@ -252,7 +240,7 @@ public class MainActivity extends Activity {
 					vy = -0.8f * vy;                   //make sure I stay with float 0 
 				} else { 
 					// only accelerate if not bouncing
-					vy = vy + 1; 
+					vy = vy + 2; 
 				}
 				
 				x = x + vx; 
@@ -310,43 +298,15 @@ public class MainActivity extends Activity {
 				
 				if( action == MotionEvent.ACTION_UP || 
 						action == MotionEvent.ACTION_CANCEL){
-					mTouching = false; 
 				} 
 				
 				if( action == MotionEvent.ACTION_DOWN){ 
-					mTouching = true; 
-				}
-				
-				if( action == MotionEvent.ACTION_DOWN || 
-						action == MotionEvent.ACTION_MOVE) {
-					
-					// we subtract mPHheight and mPHwidth to get the penguin centered
-					x = event.getX() - mPHheight; 
-					y = event.getY() - mPHwidth; 
-					
 					// when we click on the penguin we set the velocity to zero
-					vx = 0; 
-					vy = 0; 
-					
-					// we can use getAction to determine if a finger has come down or event
-					// more specifically to determine which finger has come down
-					Log.d(TAG, "Action: " + event.getAction()); 
+					vy = -20; 
+				
 				}
 				
-				// painting in the bitmap
-				// x,y are in the view coordinate system (not the bitmap coordinate system)
-				
-				// 
 			
-				float scaleX = mBitmap.getWidth() / ((float)  v.getWidth()); 
-				float scaleY = mBitmap.getHeight() / ((float) v.getHeight()); 
-				float pointX = event.getX() * scaleX; 
-				float pointY = event.getY() * scaleY; 
-				
-				
-				
-				mCanvas.drawCircle(pointX, pointY, 2, mPaint); 
-				
 				// initially we had 
 				// 
 				// $ return false
