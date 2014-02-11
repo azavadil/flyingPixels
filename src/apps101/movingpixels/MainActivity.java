@@ -51,7 +51,9 @@ public class MainActivity extends Activity {
 	private float vx = 1; 
 	private float vy = 1;
 
-	private Canvas mCanvas; 
+	private Canvas mCanvas;
+
+	protected boolean mTouching; 
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -64,8 +66,25 @@ public class MainActivity extends Activity {
 		// not too big
 		// .decodeResources takes a pointer to the resources as the first argument
 		
-		mPenguin = BitmapFactory.decodeResource(getResources(),
+		// this is the original penguin
+		
+		Bitmap original = BitmapFactory.decodeResource(getResources(),
 				R.drawable.rain_penguin_180);
+		
+		
+		// We specified the dimension in the dimens.xml file
+		// this is how we access the value in the main activity
+		// this is the desired size of the penguin
+		
+		int desired = getResources().getDimensionPixelSize(R.dimen.penguin); 
+		
+		// we'll make the penguin size right now
+		// remember with Bitmap we can say get me a bitmap and get me a scale version
+		// 
+		
+		mPenguin = Bitmap.createScaledBitmap(original, desired, desired, true); 
+		
+		
 		// Calculate the half width and height
 		mPHwidth = mPenguin.getWidth() / 2;
 		mPHheight = mPenguin.getHeight() / 2;
@@ -199,6 +218,16 @@ public class MainActivity extends Activity {
 				
 				float angle = SystemClock.uptimeMillis() / 10.0f;
 				canvas.translate(x,y); 
+				
+				// this is where we implement the touch interactivity which makes the 
+				// penguin larger
+				// right before we draw the circle we check to see if we're touching
+				// each time its touch we scale up the canvas by 20%
+				
+				if( mTouching) { 
+					canvas.scale(1.2f, 1.2f, mPHwidth, mPHheight); 
+				}
+				
 
 				// move the circle to be drawn after we translate the canvas
 				canvas.drawCircle(mPHwidth, mPHheight, mPHheight, mPaint);
@@ -220,7 +249,7 @@ public class MainActivity extends Activity {
 				// add 2*mPHheight
 				
 				if(y + 2*mPHheight + vy+1 >= this.getHeight()){ 
-					vy = -0.8f * -vy;                   //make sure I stay with float 0 
+					vy = -0.8f * vy;                   //make sure I stay with float 0 
 				} else { 
 					// only accelerate if not bouncing
 					vy = vy + 1; 
@@ -261,11 +290,39 @@ public class MainActivity extends Activity {
 				// add conditional so we only capture the penguin on the 
 				// first onDown
 				
-				if(event.getAction() == MotionEvent.ACTION_DOWN || 
-						event.getAction() == MotionEvent.ACTION_MOVE) {
-					x = event.getX(); 
-					y = event.getY(); 
+				// adding user interactivity: pressing makes the penguin get larger
+				// in the on touch event we keep track of whether we're in a touching 
+				// state or not
+				// if the action is an ACTION_UP or CANCELLED the user is finished
+				// if the action is an ACTION_DOWN then its the beginning of an interaction
+				// 
+				// usually android will be well behaved and give us an ACTION_CANCEL  event
+				// or an ACTION_UP event. Either one should terminate the action
+				// 
+				// Don't be surprised if you get 2 down events one after the other. 
+				// but your app should be well behaved if that happens
+				// 
+				// Showing you the simple single touch way of working with a motion event
+				// possible to extract multiple pointers (i.e. fingers) out of the event code
+				// In this code the subsequent events are simply ignored. 
+				
+				int action = event.getAction(); 
+				
+				if( action == MotionEvent.ACTION_UP || 
+						action == MotionEvent.ACTION_CANCEL){
+					mTouching = false; 
+				} 
+				
+				if( action == MotionEvent.ACTION_DOWN){ 
+					mTouching = true; 
+				}
+				
+				if( action == MotionEvent.ACTION_DOWN || 
+						action == MotionEvent.ACTION_MOVE) {
 					
+					// we subtract mPHheight and mPHwidth to get the penguin centered
+					x = event.getX() - mPHheight; 
+					y = event.getY() - mPHwidth; 
 					
 					// when we click on the penguin we set the velocity to zero
 					vx = 0; 
